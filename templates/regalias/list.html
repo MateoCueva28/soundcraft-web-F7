@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}- Regalías{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-coins"></i> Regalías</h1>
+        <span class="record-count" id="recordCount">{{ regalias|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar regalía...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Artista</th>
+                <th>Período</th>
+                <th>Reproducciones</th>
+                <th>Monto Est. ($0.004)</th>
+                <th>Fecha Cálculo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in regalias %}
+            <tr>
+                <td>{{ r.idRegalia }}</td>
+                <td>{{ r.Artista_idArtista.nombreArtisticoArtista }}</td>
+                <td>{{ r.periodoRegalia }}</td>
+                <td>{{ r.totalReproduccionesRegalia }}</td>
+                <td>${{ r.totalReproduccionesRegalia|multiply:0.004|floatformat:2 }}</td>
+                <td>{{ r.fechaCalculoRegalia|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-coins"></i></div>
+                <p>No hay regalías registradas.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

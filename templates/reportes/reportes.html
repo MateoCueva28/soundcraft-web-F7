@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}- Reportes{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="fas fa-chart-bar"></i> Reportes</h1>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h2><i class="fas fa-globe"></i> Reproducciones por País</h2>
+        <canvas id="repPaisChart" height="250"></canvas>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-credit-card"></i> Ingresos por Método de Pago</h2>
+        <canvas id="ingresosChart" height="250"></canvas>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-list"></i> Suscripciones por Plan</h2>
+        <canvas id="suscripcionesChart" height="250"></canvas>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-trophy"></i> Top 10 Canciones</h2>
+        <table class="table">
+            <thead>
+                <tr><th>Canción</th><th>Reproducciones</th></tr>
+            </thead>
+            <tbody>
+                {% for c in top_canciones %}
+                <tr>
+                    <td>{{ c.tituloCancion }}</td>
+                    <td>{{ c.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.repPaisData = {
+        labels: [{% for r in reproducciones_por_pais %}"{{ r.paisReproduccion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        values: [{% for r in reproducciones_por_pais %}{{ r.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    };
+    window.ingresosData = {
+        labels: [{% for p in ingresos_por_metodo %}"{{ p.metodoPago }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        values: [{% for p in ingresos_por_metodo %}{{ p.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    };
+    window.suscripcionesData = {
+        labels: [{% for s in suscripciones_por_plan %}"{{ s.tipoPlanSuscripcion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        values: [{% for s in suscripciones_por_plan %}{{ s.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,6 @@
+[MASTER]
+load-plugins=pylint_django
+django-settings-module=soundcraft.settings
+
+[MESSAGES CONTROL]
+disable=C0111,R0903,W0611

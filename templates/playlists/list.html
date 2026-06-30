@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}- Playlists{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-list"></i> Playlists</h1>
+        <span class="record-count" id="recordCount">{{ playlists|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar playlist...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Usuario</th>
+                <th>Fecha Creación</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in playlists %}
+            <tr>
+                <td>{{ p.idPlaylist }}</td>
+                <td>{{ p.nombrePlaylist }}</td>
+                <td>{{ p.Usuario_idUsuario.nombreUsuario }}</td>
+                <td>{{ p.fechaCreacionPlaylist|date:"d/m/Y" }}</td>
+                <td>
+                    {% if p.estadoPlaylist == 'Activa' %}
+                        <span class="badge badge-success">{{ p.estadoPlaylist }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ p.estadoPlaylist }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-list"></i></div>
+                <p>No hay playlists registradas.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

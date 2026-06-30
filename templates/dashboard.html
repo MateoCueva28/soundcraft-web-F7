@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}- Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Dashboard</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-info"><h3>{{ total_usuarios }}</h3><p>Usuarios</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-microphone"></i></div>
+        <div class="stat-info"><h3>{{ total_artistas }}</h3><p>Artistas</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-music"></i></div>
+        <div class="stat-info"><h3>{{ total_canciones }}</h3><p>Canciones</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-compact-disc"></i></div>
+        <div class="stat-info"><h3>{{ total_albumes }}</h3><p>Álbumes</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-list"></i></div>
+        <div class="stat-info"><h3>{{ total_playlists }}</h3><p>Playlists</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-play"></i></div>
+        <div class="stat-info"><h3>{{ total_reproducciones }}</h3><p>Reproducciones</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
+        <div class="stat-info"><h3>{{ total_suscripciones }}</h3><p>Suscripciones</p></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-info"><h3>{{ total_pagos }}</h3><p>Pagos</p></div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <h2><i class="fas fa-fire"></i> Top Canciones</h2>
+        <canvas id="topCancionesChart" height="200"></canvas>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-globe"></i> Reproducciones por País</h2>
+        <canvas id="paisChart" height="200"></canvas>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top:1.5rem">
+    <div class="card">
+        <h2><i class="fas fa-clock-rotate-left"></i> Últimas Reproducciones</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Usuario</th><th>Canción</th><th>País</th><th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in ultimas_reproducciones %}
+                <tr>
+                    <td>{{ r.Usuario_idUsuario.nombreUsuario }}</td>
+                    <td>{{ r.Cancion_idCancion.tituloCancion }}</td>
+                    <td>{{ r.paisReproduccion }}</td>
+                    <td>{{ r.fechaReproduccion|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h2><i class="fas fa-trophy"></i> Top 5 Canciones</h2>
+        <table class="table">
+            <thead>
+                <tr><th>#</th><th>Canción</th><th>Reproducciones</th></tr>
+            </thead>
+            <tbody>
+                {% for c in top_canciones %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ c.tituloCancion }}</td>
+                    <td>{{ c.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.topCancionesData = {
+        labels: [{% for c in top_canciones %}"{{ c.tituloCancion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        values: [{% for c in top_canciones %}{{ c.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    };
+    window.paisData = {
+        labels: [{% for r in reproducciones_por_pais %}"{{ r.paisReproduccion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        values: [{% for r in reproducciones_por_pais %}{{ r.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}- Suscripciones{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-credit-card"></i> Suscripciones</h1>
+        <span class="record-count" id="recordCount">{{ suscripciones|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar suscripción...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Plan</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in suscripciones %}
+            <tr>
+                <td>{{ s.idSuscripcion }}</td>
+                <td>{{ s.Usuario_idUsuario.nombreUsuario }}</td>
+                <td><span class="badge badge-info">{{ s.tipoPlanSuscripcion }}</span></td>
+                <td>{{ s.fechaInicioSuscripcion|date:"d/m/Y" }}</td>
+                <td>{{ s.fechaFinSuscripcion|date:"d/m/Y" }}</td>
+                <td>
+                    {% if s.estadoSuscripcion == 'Activa' %}
+                        <span class="badge badge-success">{{ s.estadoSuscripcion }}</span>
+                    {% elif s.estadoSuscripcion == 'Pendiente' %}
+                        <span class="badge badge-warning">{{ s.estadoSuscripcion }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ s.estadoSuscripcion }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-credit-card"></i></div>
+                <p>No hay suscripciones registradas.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

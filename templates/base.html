@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundcraft {% block title %}{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    {% with url_name=request.resolver_match.url_name %}
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <a href="{% url 'dashboard' %}" class="logo"><img src="{% static 'img/logo.png' %}" alt="Soundcraft" class="logo-img"> Soundcraft</a>
+            <button class="navbar-toggle" id="navbarToggle">&#9776;</button>
+        </div>
+        <ul class="navbar-menu" id="navbarMenu">
+            <li><a href="{% url 'dashboard' %}" class="{% if url_name == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{% url 'usuario_list' %}" class="{% if 'usuario' in url_name %}active{% endif %}">Usuarios</a></li>
+            <li><a href="{% url 'artista_list' %}" class="{% if 'artista' in url_name %}active{% endif %}">Artistas</a></li>
+            <li><a href="{% url 'cancion_list' %}" class="{% if 'cancion' in url_name %}active{% endif %}">Canciones</a></li>
+            <li><a href="{% url 'album_list' %}" class="{% if 'album' in url_name %}active{% endif %}">Álbumes</a></li>
+            <li><a href="{% url 'playlist_list' %}" class="{% if 'playlist' in url_name %}active{% endif %}">Playlists</a></li>
+            <li><a href="{% url 'reproduccion_list' %}" class="{% if 'reproduccion' in url_name %}active{% endif %}">Reproducciones</a></li>
+            <li><a href="{% url 'suscripcion_list' %}" class="{% if 'suscripcion' in url_name %}active{% endif %}">Suscripciones</a></li>
+            <li><a href="{% url 'pago_list' %}" class="{% if 'pago' in url_name %}active{% endif %}">Pagos</a></li>
+            <li><a href="{% url 'regalia_list' %}" class="{% if 'regalia' in url_name %}active{% endif %}">Regalías</a></li>
+            <li><a href="{% url 'reportes' %}" class="{% if url_name == 'reportes' %}active{% endif %}">Reportes</a></li>
+        </ul>
+    </nav>
+    {% endwith %}
+
+    <!-- MODAL GLOBAL DE ELIMINACIÓN -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <h3><i class="fas fa-triangle-exclamation"></i> Confirmar Eliminación</h3>
+            <p>¿Estás seguro de eliminar a <strong id="deleteModalName"></strong>?</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="confirmDelete">Sí, eliminar</button>
+                <button class="btn btn-secondary" id="cancelDelete">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

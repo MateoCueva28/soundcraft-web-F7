@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}- Artistas{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-microphone"></i> Artistas</h1>
+        <span class="record-count" id="recordCount">{{ artistas|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar artista...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre Artístico</th>
+                <th>País</th>
+                <th>Discografía</th>
+                <th>Estado</th>
+                <th>Registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in artistas %}
+            <tr>
+                <td>{{ a.idArtista }}</td>
+                <td>{{ a.nombreArtisticoArtista }}</td>
+                <td>{{ a.paisOrigenArtista }}</td>
+                <td>{{ a.Discografia_idDiscografia.nombreDiscografia }}</td>
+                <td>
+                    {% if a.estadoArtista == 'Activo' %}
+                        <span class="badge badge-success">{{ a.estadoArtista }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ a.estadoArtista }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ a.fechaRegistroArtista|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-microphone"></i></div>
+                <p>No hay artistas registrados.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

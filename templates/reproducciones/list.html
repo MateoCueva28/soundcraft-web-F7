@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}- Reproducciones{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-play"></i> Reproducciones</h1>
+        <span class="record-count" id="recordCount">{{ reproducciones|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar reproducción...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Canción</th>
+                <th>País</th>
+                <th>Duración</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reproducciones %}
+            <tr>
+                <td>{{ r.idReproduccion }}</td>
+                <td>{{ r.Usuario_idUsuario.nombreUsuario }}</td>
+                <td>{{ r.Cancion_idCancion.tituloCancion }}</td>
+                <td>{{ r.paisReproduccion }}</td>
+                <td>{{ r.duracionReproduccion }}</td>
+                <td>{{ r.fechaReproduccion|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-play"></i></div>
+                <p>No hay reproducciones registradas.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

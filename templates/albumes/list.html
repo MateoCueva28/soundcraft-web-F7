@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}- Álbumes{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-compact-disc"></i> Álbumes</h1>
+        <span class="record-count" id="recordCount">{{ albumes|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar álbum...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Artista</th>
+                <th>Lanzamiento</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in albumes %}
+            <tr>
+                <td>{{ a.idAlbum }}</td>
+                <td>{{ a.tituloAlbum }}</td>
+                <td>{{ a.Artista_idArtista.nombreArtisticoArtista }}</td>
+                <td>{{ a.fechaLanzamiento|date:"d/m/Y" }}</td>
+                <td>
+                    {% if a.estadoAlbum == 'Publicado' %}
+                        <span class="badge badge-success">{{ a.estadoAlbum }}</span>
+                    {% elif a.estadoAlbum == 'Pendiente' %}
+                        <span class="badge badge-warning">{{ a.estadoAlbum }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ a.estadoAlbum }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-compact-disc"></i></div>
+                <p>No hay álbumes registrados.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

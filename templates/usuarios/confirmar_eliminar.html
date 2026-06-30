@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}- Eliminar Usuario{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1 class="page-title"><i class="fas fa-user-minus"></i> Eliminar Usuario</h1>
+</div>
+<div class="form-card">
+    <p style="margin-bottom:1rem; color:#ccc;">
+        ¿Estás seguro de que deseas eliminar al usuario 
+        <strong style="color:#e74c3c;">{{ usuario.nombreUsuario }} {{ usuario.apellidoUsuario }}</strong>?
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <a href="{% url 'usuario_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

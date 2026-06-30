@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block title %}- {{ accion }} Usuario{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <h1 class="page-title"><i class="fas fa-user-pen"></i> {{ accion }} Usuario</h1>
+    <a href="{% url 'usuario_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="form-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" name="nombreUsuario" value="{{ usuario.nombreUsuario }}" required>
+        </div>
+        <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" name="apellidoUsuario" value="{{ usuario.apellidoUsuario }}" required>
+        </div>
+        <div class="form-group">
+            <label>Correo</label>
+            <input type="email" name="correoUsuario" value="{{ usuario.correoUsuario }}" required>
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" name="contraseniaUsuario" value="{{ usuario.contraseniaUsuario }}" required>
+        </div>
+        <div class="form-group">
+            <label>Fecha de Registro</label>
+            <input type="datetime-local" name="fechaRegistroUsuario"
+                value="{{ usuario.fechaRegistroUsuario|date:'Y-m-d' }}T00:00" required>
+        </div>
+        <div class="form-group">
+            <label>País</label>
+            <input type="text" name="paisUsuario" value="{{ usuario.paisUsuario }}" required>
+        </div>
+        <div class="form-group">
+            <label>Tipo de Usuario</label>
+            <select name="tipoUsuario">
+                {% for tipo in "Administrador,Artista,Estudiante,Familia,Free,Oyente,Premium,Soporte"|split:"," %}
+                    <option value="{{ tipo }}" {% if usuario.tipoUsuario == tipo %}selected{% endif %}>{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Estado de Cuenta</label>
+            <select name="estadoCuentaUsuario">
+                {% for estado in "Activo,Eliminado,Inactivo,Suspendido"|split:"," %}
+                    <option value="{{ estado }}" {% if usuario.estadoCuentaUsuario == estado %}selected{% endif %}>{{ estado }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 {{ accion }}</button>
+            <a href="{% url 'usuario_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

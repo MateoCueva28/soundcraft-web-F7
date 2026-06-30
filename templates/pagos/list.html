@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}- Pagos{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="title-group">
+        <h1 class="page-title"><i class="fas fa-money-bill-wave"></i> Pagos</h1>
+        <span class="record-count" id="recordCount">{{ pagos|length }} registros</span>
+    </div>
+    <div class="search-wrapper">
+        <i class="fas fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-box" placeholder="Buscar pago...">
+    </div>
+</div>
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Suscripción</th>
+                <th>Monto</th>
+                <th>Método</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in pagos %}
+            <tr>
+                <td>{{ p.idPago }}</td>
+                <td>#{{ p.Suscripcion_idSuscripcion.idSuscripcion }} — {{ p.Suscripcion_idSuscripcion.tipoPlanSuscripcion }}</td>
+                <td>${{ p.montoPago }}</td>
+                <td>{{ p.metodoPago }}</td>
+                <td>
+                    {% if p.estadoPago == 'Aprobado' %}
+                        <span class="badge badge-success">{{ p.estadoPago }}</span>
+                    {% elif p.estadoPago == 'No aplica' %}
+                        <span class="badge badge-warning">{{ p.estadoPago }}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{{ p.estadoPago }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ p.fechaPago|date:"d/m/Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <p>No hay pagos registrados.</p>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
