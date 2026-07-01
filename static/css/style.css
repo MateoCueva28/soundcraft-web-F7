@@ -526,3 +526,14 @@ body {
         border-radius: 6px;
     }
 }
+
+/* DISCOGRAFÍA EMBEBIDA */
+.disc-name { font-weight: 600; color: var(--color-text); }
+.disc-meta  { color: var(--color-text-dim); font-size: 0.78rem; }
+
+/* ============================================================
+   LOGIN PAGE
+   Los estilos del login son auto-contenidos en templates/login.html
+   mediante un bloque <style> inline para garantizar aislamiento
+   total del CSS del panel de administración.
+   ============================================================ */

@@ -1,22 +1,351 @@
-{% extends 'base.html' %}
-{% block title %}- Login{% endblock %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundcraft — Iniciar sesión</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-{% block content %}
-<div class="form-card" style="max-width: 420px; margin: 3rem auto;">
-    <h1 class="page-title"><i class="fas fa-right-to-bracket"></i> Iniciar sesión</h1>
-    <form method="post" action="{% url 'login_view' %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label>Correo</label>
-            <input type="email" name="correoUsuario" required>
+    <style>
+        /* ── RESET ───────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* html también recibe el fondo para evitar el gris del navegador */
+        html {
+            background: #0a0a0a;
+            height: 100%;
+        }
+
+        /* ── BODY: centrado absoluto ─────────────────────────── */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ── ORBES DE AMBIENTE ───────────────────────────────── */
+        /* Muy sutiles — solo dan un toque de color al fondo negro */
+        .lb-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.12;           /* ← bajado de 0.22 a 0.12 */
+            pointer-events: none;
+            z-index: 0;
+        }
+        .lb-orb--1 {
+            width: 480px; height: 480px;
+            background: #7B2CBF;
+            top: -160px; left: -160px;
+        }
+        .lb-orb--2 {
+            width: 360px; height: 360px;
+            background: #4a1880;
+            bottom: -100px; right: -100px;
+        }
+
+        /* ── ESCENA (messages + card apilados) ───────────────── */
+        .l-scene {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ── MENSAJES DJANGO ─────────────────────────────────── */
+        .l-alerts { display: flex; flex-direction: column; gap: 8px; }
+
+        .l-alert {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: lFadeIn 0.3s ease both;
+        }
+        .l-alert--error   { background: rgba(231,76,60,.14);  border: 1px solid rgba(231,76,60,.4);  color: #e74c3c; }
+        .l-alert--success { background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.35); color: #2ecc71; }
+
+        /* ── CARD GLASSMORPHISM ──────────────────────────────── */
+        .l-card {
+            position: relative;
+            width: 100%;
+
+            /* Fondo oscuro sólido con leve tinte morado:
+               NO translúcido para evitar el efecto nuboso */
+            background: #12102060;
+            background: color-mix(in srgb, #100c1e 88%, transparent);
+            /* Fallback para navegadores sin color-mix */
+            background: rgba(16, 12, 30, 0.94);
+
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 24px 64px rgba(0, 0, 0, 0.65),
+                inset 0 1px 0 rgba(192, 132, 252, 0.18);
+
+            /* overflow:hidden recorta el glow ::before a la card */
+            overflow: hidden;
+
+            /* backdrop-filter ELIMINADO — era el origen del efecto nuboso */
+        }
+
+        /* ── GLOW MORADO EN ESQUINA SUPERIOR IZQUIERDA ───────── */
+        /* Reducido en tamaño y opacidad para que sea sutil, no dominante */
+        .l-card::before {
+            content: '';
+            position: absolute;
+            top: -55px;
+            left: -55px;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(
+                circle at 35% 35%,
+                rgba(168, 85, 247, 0.42) 0%,
+                rgba(147, 51, 234, 0.18) 45%,
+                transparent 68%
+            );
+            filter: blur(44px);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── CONTENIDO INTERIOR (encima del glow) ────────────── */
+        .l-inner {
+            position: relative;
+            z-index: 1;
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── LOGO ────────────────────────────────────────────── */
+        .l-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .l-logo img  { height: 34px; width: auto; }
+        .l-logo span {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #c084fc;
+            letter-spacing: 0.4px;
+        }
+
+        /* ── TÍTULO / SUBTÍTULO ──────────────────────────────── */
+        .l-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .l-sub {
+            font-size: 0.93rem;
+            color: #a1a1aa;
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        /* ── FORMULARIO ──────────────────────────────────────── */
+        .l-form { display: flex; flex-direction: column; gap: 16px; }
+
+        /* ── CAMPO ───────────────────────────────────────────── */
+        .l-field {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .l-field__icon {
+            position: absolute;
+            left: 16px;
+            color: rgba(255, 255, 255, 0.27);
+            font-size: 0.87rem;
+            pointer-events: none;
+            transition: color 0.2s;
+            z-index: 1;
+        }
+        .l-field:focus-within .l-field__icon { color: #c084fc; }
+
+        .l-field__input {
+            width: 100%;
+            padding: 15px 16px 15px 44px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 13px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .l-field__input::placeholder { color: rgba(255, 255, 255, 0.22); }
+        .l-field__input:focus {
+            border-color: rgba(147, 51, 234, 0.65);
+            background: rgba(147, 51, 234, 0.08);
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.18);
+        }
+
+        /* Padding derecho en el campo de contraseña */
+        .l-field--pass .l-field__input { padding-right: 44px; }
+
+        /* ── BOTÓN OJO ────────────────────────────────────────── */
+        .l-field__eye {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            font-size: 0.87rem;
+            padding: 4px;
+            transition: color 0.2s;
+            z-index: 1;
+        }
+        .l-field__eye:hover { color: rgba(255, 255, 255, 0.6); }
+
+        /* ── BOTÓN INGRESAR ──────────────────────────────────── */
+        .l-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 15px;
+            background: linear-gradient(135deg, #9333ea 0%, #c084fc 100%);
+            border: none;
+            border-radius: 13px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            letter-spacing: 0.25px;
+            transition: opacity 0.22s, transform 0.22s, box-shadow 0.22s;
+            box-shadow: 0 4px 24px rgba(147, 51, 234, 0.45);
+        }
+        .l-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(147, 51, 234, 0.55);
+        }
+        .l-btn:active { transform: translateY(0); opacity: 1; }
+
+        /* ── ANIMACIÓN ───────────────────────────────────────── */
+        @keyframes lFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0);     }
+        }
+        .l-scene { animation: lFadeIn 0.4s ease both; }
+
+        /* ── RESPONSIVE ──────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .l-inner { padding: 36px 26px; }
+            .l-title { font-size: 1.65rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="lb-orb lb-orb--1"></div>
+    <div class="lb-orb lb-orb--2"></div>
+
+    <div class="l-scene">
+
+        {% if messages %}
+        <div class="l-alerts">
+            {% for message in messages %}
+            <div class="l-alert l-alert--{{ message.tags }}">
+                <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
-        <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" name="contraseniaUsuario" required>
+        {% endif %}
+
+        <div class="l-card">
+            <div class="l-inner">
+
+                <div class="l-logo">
+                    <img src="{% static 'img/logo.png' %}" alt="Soundcraft">
+                    <span>Soundcraft</span>
+                </div>
+
+                <h1 class="l-title">Bienvenido</h1>
+                <p class="l-sub">Inicia sesión en tu cuenta</p>
+
+                <form method="post" action="{% url 'login_view' %}" class="l-form">
+                    {% csrf_token %}
+
+                    <div class="l-field">
+                        <i class="fas fa-envelope l-field__icon"></i>
+                        <input
+                            type="email"
+                            name="correoUsuario"
+                            id="correoUsuario"
+                            class="l-field__input"
+                            placeholder="Correo electrónico"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="l-field l-field--pass">
+                        <i class="fas fa-lock l-field__icon"></i>
+                        <input
+                            type="password"
+                            name="contraseniaUsuario"
+                            id="contraseniaUsuario"
+                            class="l-field__input"
+                            placeholder="Contraseña"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="l-field__eye" tabindex="-1" aria-label="Mostrar contraseña">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="l-btn">
+                        Ingresar <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                </form>
+            </div>
         </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Ingresar</button>
-        </div>
-    </form>
-</div>
-{% endblock %}
+
+    </div>
+
+    <script>
+        document.querySelector('.l-field__eye').addEventListener('click', function () {
+            const input = document.getElementById('contraseniaUsuario');
+            const icon  = document.getElementById('eyeIcon');
+            const show  = input.type === 'password';
+            input.type  = show ? 'text' : 'password';
+            icon.classList.toggle('fa-eye',      !show);
+            icon.classList.toggle('fa-eye-slash',  show);
+        });
+    </script>
+
+</body>
+</html>
