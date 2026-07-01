@@ -62,8 +62,8 @@
             <tbody>
                 {% for r in ultimas_reproducciones %}
                 <tr>
-                    <td>{{ r.Usuario_idUsuario.nombreUsuario }}</td>
-                    <td>{{ r.Cancion_idCancion.tituloCancion }}</td>
+                    <td>{{ r.nombreUsuario }}</td>
+                    <td>{{ r.tituloCancion }}</td>
                     <td>{{ r.paisReproduccion }}</td>
                     <td>{{ r.fechaReproduccion|date:"d/m/Y H:i" }}</td>
                 </tr>
