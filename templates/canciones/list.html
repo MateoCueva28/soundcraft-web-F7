@@ -12,58 +12,117 @@
         <input type="text" id="searchInput" class="search-box" placeholder="Buscar canción...">
     </div>
 </div>
-<div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Duración</th>
-                <th>Pista</th>
-                <th>Género</th>
-                <th>Álbum</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for c in canciones %}
-            <tr>
-                <td>{{ c.idCancion }}</td>
-                <td>{{ c.tituloCancion }}</td>
-                <td>{{ c.duracionCancion }}</td>
-                <td>{{ c.numeroPistaCancion }}</td>
-                <td>
-                    {% if c.generos %}
-                        {% for g in c.generos %}
-                            <span class="badge badge-info">{{ g.genero }}</span>{% if not forloop.last %} {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <span style="color:var(--color-text-dim)">—</span>
+
+{% if canciones %}
+<div class="tk-list">
+
+    <div class="tk-header">
+        <span class="tk-header-num">#</span>
+        <span></span>
+        <span>Título</span>
+        <span class="tk-header-album">Álbum</span>
+        <span class="tk-header-dur"><i class="fas fa-clock"></i></span>
+    </div>
+
+    <div id="tkRows">
+        {% for c in canciones %}
+        <div class="tk-row"
+             data-id="{{ c.idCancion }}"
+             data-titulo="{{ c.tituloCancion }}"
+             data-artista="{% if c.album %}{{ c.album.nombreArtista }}{% endif %}"
+             tabindex="0"
+             role="button"
+             aria-label="{{ c.tituloCancion }}">
+
+            <span class="tk-num">{{ forloop.counter }}</span>
+
+            <div class="tk-cover">
+                <i class="fas fa-music"></i>
+            </div>
+
+            <div class="tk-main">
+                <span class="tk-title">
+                    {{ c.tituloCancion }}
+                    {% if c.estadoCancion != 'Publicada' %}
+                    <span class="tk-dot-status" title="{{ c.estadoCancion }}"></span>
                     {% endif %}
-                </td>
-                <td>
-                    {% if c.album %}
-                        <span class="disc-name">{{ c.album.tituloAlbum }}</span>
-                        <br><small class="disc-meta">{{ c.album.fechaLanzamiento|date:"d/m/Y" }} · {{ c.album.nombreArtista }}</small>
-                    {% else %}
-                        <span style="color:var(--color-text-dim)">—</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if c.estadoCancion == 'Publicada' %}
-                        <span class="badge badge-success">{{ c.estadoCancion }}</span>
-                    {% else %}
-                        <span class="badge badge-danger">{{ c.estadoCancion }}</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="7" class="empty-state">
-                <div class="empty-state-icon"><i class="fas fa-music"></i></div>
-                <p>No hay canciones registradas.</p>
-            </td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </span>
+                <span class="tk-artist">
+                    {% if c.album %}{{ c.album.nombreArtista }}{% else %}—{% endif %}
+                </span>
+            </div>
+
+            <div class="tk-album-col">
+                <span class="tk-album-name">
+                    {% if c.album %}{{ c.album.tituloAlbum }}{% else %}—{% endif %}
+                </span>
+                <span class="tk-album-date">
+                    {% if c.album %}{{ c.album.fechaLanzamiento }}{% endif %}
+                </span>
+            </div>
+
+            <span class="tk-dur">{{ c.duracionCancion }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <p class="tk-no-results" id="tkNoResults">No se encontraron canciones.</p>
 </div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-music"></i></div>
+    <p>No hay canciones registradas.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block modals %}
+<!-- MODAL DETALLE CANCIÓN — fuera de .container para evitar stacking context del transform -->
+<div class="ck-modal-overlay" id="ckModal" role="dialog" aria-modal="true" aria-labelledby="ckModalTitle">
+    <div class="ck-modal-box">
+        <button class="ck-modal-close" id="ckModalClose" aria-label="Cerrar">&times;</button>
+
+        <div class="ck-modal-header">
+            <div class="ck-modal-cover" id="ckModalCover">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="ck-modal-heading">
+                <div class="ck-modal-title" id="ckModalTitle"></div>
+                <div class="ck-modal-artist" id="ckModalArtist"></div>
+            </div>
+        </div>
+
+        <div class="ck-modal-divider"></div>
+
+        <div class="ck-modal-props">
+            <div class="ck-prop">
+                <span class="ck-prop-label"><i class="fas fa-compact-disc"></i> Álbum</span>
+                <span class="ck-prop-value" id="ckModalAlbum"></span>
+            </div>
+            <div class="ck-prop">
+                <span class="ck-prop-label"><i class="fas fa-list-ol"></i> Pista</span>
+                <span class="ck-prop-value" id="ckModalPista"></span>
+            </div>
+            <div class="ck-prop">
+                <span class="ck-prop-label"><i class="fas fa-clock"></i> Duración</span>
+                <span class="ck-prop-value" id="ckModalDur"></span>
+            </div>
+            <div class="ck-prop">
+                <span class="ck-prop-label"><i class="fas fa-tag"></i> Género</span>
+                <div class="ck-genres" id="ckModalGeneros"></div>
+            </div>
+            <div class="ck-prop">
+                <span class="ck-prop-label"><i class="fas fa-circle-check"></i> Estado</span>
+                <span id="ckModalEstado"></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.CANCIONES_DATA = {{ canciones_json|safe }};
+</script>
 {% endblock %}
