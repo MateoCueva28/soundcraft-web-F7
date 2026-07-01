@@ -5,50 +5,78 @@
 <h1 class="page-title"><i class="fas fa-chart-bar"></i> Reportes</h1>
 
 <div class="dashboard-grid">
+
+    <!-- ── 1. REPRODUCCIONES POR PAÍS ──────────────────────── -->
     <div class="card">
         <h2><i class="fas fa-globe"></i> Reproducciones por País</h2>
-        <canvas id="repPaisChart" height="250"></canvas>
+        <div class="rpt-filters">
+            <label class="rpt-filter-label">
+                Desde <input type="date" id="repDesde" class="rpt-filter-input">
+            </label>
+            <label class="rpt-filter-label">
+                Hasta <input type="date" id="repHasta" class="rpt-filter-input">
+            </label>
+        </div>
+        <p class="rpt-no-data" id="repNoData">No hay datos para este filtro.</p>
+        <canvas id="repPaisChart" height="280"></canvas>
     </div>
+
+    <!-- ── 2. INGRESOS POR MÉTODO DE PAGO ──────────────────── -->
     <div class="card">
         <h2><i class="fas fa-credit-card"></i> Ingresos por Método de Pago</h2>
-        <canvas id="ingresosChart" height="250"></canvas>
+        <div class="rpt-filters">
+            <label class="rpt-filter-label">
+                Desde <input type="date" id="ingDesde" class="rpt-filter-input">
+            </label>
+            <label class="rpt-filter-label">
+                Hasta <input type="date" id="ingHasta" class="rpt-filter-input">
+            </label>
+        </div>
+        <p class="rpt-no-data" id="ingNoData">No hay datos para este filtro.</p>
+        <canvas id="ingresosChart" height="280"></canvas>
     </div>
+
+    <!-- ── 3. SUSCRIPCIONES POR PLAN ───────────────────────── -->
     <div class="card">
         <h2><i class="fas fa-list"></i> Suscripciones por Plan</h2>
-        <canvas id="suscripcionesChart" height="250"></canvas>
+        <div class="rpt-filters">
+            <label class="rpt-filter-label">
+                Desde <input type="date" id="sussDesde" class="rpt-filter-input">
+            </label>
+            <label class="rpt-filter-label">
+                Hasta <input type="date" id="sussHasta" class="rpt-filter-input">
+            </label>
+            <label class="rpt-filter-label">
+                Estado
+                <select id="sussEstado" class="rpt-filter-input"></select>
+            </label>
+        </div>
+        <p class="rpt-no-data" id="sussNoData">No hay datos para este filtro.</p>
+        <canvas id="suscripcionesChart" height="280"></canvas>
     </div>
+
+    <!-- ── 4. REGALÍAS POR ARTISTA ─────────────────────────── -->
     <div class="card">
-        <h2><i class="fas fa-trophy"></i> Top 10 Canciones</h2>
-        <table class="table">
-            <thead>
-                <tr><th>Canción</th><th>Reproducciones</th></tr>
-            </thead>
-            <tbody>
-                {% for c in top_canciones %}
-                <tr>
-                    <td>{{ c.tituloCancion }}</td>
-                    <td>{{ c.total }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h2><i class="fas fa-coins"></i> Regalías por Artista</h2>
+        <div class="rpt-filters">
+            <label class="rpt-filter-label">
+                Período
+                <select id="regPeriodo" class="rpt-filter-input"></select>
+            </label>
+            <label class="rpt-filter-label">
+                Artista
+                <select id="regArtista" class="rpt-filter-input"></select>
+            </label>
+        </div>
+        <p class="rpt-no-data" id="regNoData">No hay datos para este filtro.</p>
+        <canvas id="regaliasChart" height="280"></canvas>
     </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    window.repPaisData = {
-        labels: [{% for r in reproducciones_por_pais %}"{{ r.paisReproduccion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-        values: [{% for r in reproducciones_por_pais %}{{ r.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
-    };
-    window.ingresosData = {
-        labels: [{% for p in ingresos_por_metodo %}"{{ p.metodoPago }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-        values: [{% for p in ingresos_por_metodo %}{{ p.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
-    };
-    window.suscripcionesData = {
-        labels: [{% for s in suscripciones_por_plan %}"{{ s.tipoPlanSuscripcion }}"{% if not forloop.last %},{% endif %}{% endfor %}],
-        values: [{% for s in suscripciones_por_plan %}{{ s.total }}{% if not forloop.last %},{% endif %}{% endfor %}]
-    };
+window.REPORTES_DATA = {{ reportes_json|safe }};
 </script>
 {% endblock %}

@@ -70,9 +70,8 @@ function initDeleteModal() {
 // CHART.JS - PALETA DE COLORES
 // ============================================================
 const CHART_COLORS = [
-    '#7B2CBF','#9B4CD9','#5e1fa0','#b56de8',
-    '#4a1880','#c98df0','#3d1266','#d4a8f5',
-    '#2c0d4d','#e0c3fa'
+    '#7B2CBF','#2ecc71','#f0a500','#e74c3c',
+    '#3498db','#9b59b6','#1abc9c','#e67e22'
 ];
 
 const CHART_GRID  = '#2a2a4e';
@@ -136,72 +135,218 @@ function initDashboardCharts() {
 // CHART.JS - REPORTES
 // ============================================================
 function initReportesCharts() {
-    const repPaisCtx = document.getElementById('repPaisChart');
-    if (repPaisCtx && window.repPaisData) {
-        new Chart(repPaisCtx, {
+    if (!window.REPORTES_DATA) return;
+    var D = window.REPORTES_DATA;
+    var ci = {};   // live Chart.js instances keyed by canvas id
+
+    function kill(id) {
+        if (ci[id]) { ci[id].destroy(); ci[id] = null; }
+    }
+
+    function toggle(canvasId, msgId, isEmpty) {
+        var cv = document.getElementById(canvasId);
+        var mg = document.getElementById(msgId);
+        if (cv) cv.style.display = isEmpty ? 'none' : '';
+        if (mg) mg.style.display = isEmpty ? '' : 'none';
+    }
+
+    function dateFilter(items, fechaKey, desde, hasta) {
+        return items.filter(function(r) {
+            var f = (r[fechaKey] || '').slice(0, 10);
+            return (!desde || f >= desde) && (!hasta || f <= hasta);
+        });
+    }
+
+    function groupCount(items, key) {
+        var m = {};
+        items.forEach(function(r) { m[r[key]] = (m[r[key]] || 0) + 1; });
+        return Object.entries(m).sort(function(a, b) { return b[1] - a[1]; });
+    }
+
+    function groupSum(items, keyLabel, keyVal) {
+        var m = {};
+        items.forEach(function(r) {
+            m[r[keyLabel]] = (m[r[keyLabel]] || 0) + Number(r[keyVal]);
+        });
+        return Object.entries(m).sort(function(a, b) { return b[1] - a[1]; });
+    }
+
+    function hBarOpts() {
+        return {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: CHART_TICKS }, grid: { color: CHART_GRID } },
+                y: { ticks: { color: CHART_TICKS }, grid: { color: CHART_GRID } }
+            }
+        };
+    }
+
+    // ── 1. REPRODUCCIONES POR PAÍS ──────────────────────────
+    function drawRepPais() {
+        var desde = (document.getElementById('repDesde') || {}).value || '';
+        var hasta = (document.getElementById('repHasta') || {}).value || '';
+        var rows = dateFilter(D.repros, 'fecha', desde, hasta);
+        var sorted = groupCount(rows, 'pais');
+        kill('repPaisChart');
+        if (!sorted.length) { toggle('repPaisChart', 'repNoData', true); return; }
+        toggle('repPaisChart', 'repNoData', false);
+        ci['repPaisChart'] = new Chart(document.getElementById('repPaisChart'), {
             type: 'bar',
             data: {
-                labels: window.repPaisData.labels,
-                datasets: [{
-                    label: 'Reproducciones',
-                    data: window.repPaisData.values,
-                    backgroundColor: CHART_COLORS[0],
-                    borderRadius: 6,
-                }]
+                labels: sorted.map(function(e) { return e[0]; }),
+                datasets: [{ label: 'Reproducciones', data: sorted.map(function(e) { return e[1]; }),
+                    backgroundColor: CHART_COLORS[0], borderRadius: 6 }]
             },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: CHART_TICKS }, grid: { color: CHART_GRID } },
-                    y: { ticks: { color: CHART_TICKS }, grid: { color: CHART_GRID } }
-                }
-            }
+            options: hBarOpts()
         });
     }
 
-    const ingresosCtx = document.getElementById('ingresosChart');
-    if (ingresosCtx && window.ingresosData) {
-        new Chart(ingresosCtx, {
+    var repDesde = document.getElementById('repDesde');
+    if (repDesde) {
+        repDesde.addEventListener('change', drawRepPais);
+        document.getElementById('repHasta').addEventListener('change', drawRepPais);
+        drawRepPais();
+    }
+
+    // ── 2. INGRESOS POR MÉTODO DE PAGO ─────────────────────
+    function drawIngresos() {
+        var desde = (document.getElementById('ingDesde') || {}).value || '';
+        var hasta = (document.getElementById('ingHasta') || {}).value || '';
+        var rows = dateFilter(D.pagos, 'fecha', desde, hasta);
+        var sorted = groupSum(rows, 'metodo', 'monto');
+        kill('ingresosChart');
+        if (!sorted.length) { toggle('ingresosChart', 'ingNoData', true); return; }
+        toggle('ingresosChart', 'ingNoData', false);
+        ci['ingresosChart'] = new Chart(document.getElementById('ingresosChart'), {
             type: 'pie',
             data: {
-                labels: window.ingresosData.labels,
-                datasets: [{
-                    data: window.ingresosData.values,
-                    backgroundColor: ['#7B2CBF', '#2ecc71', '#f0a500', '#3498db'],
-                }]
+                labels: sorted.map(function(e) { return e[0]; }),
+                datasets: [{ data: sorted.map(function(e) { return Math.round(e[1] * 100) / 100; }),
+                    backgroundColor: CHART_COLORS.slice(0, sorted.length) }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { position: 'bottom', labels: { color: CHART_TEXT } }
+                    legend: { position: 'right', labels: { color: CHART_TEXT, padding: 10 } },
+                    tooltip: { callbacks: { label: function(c) {
+                        return c.label + ': $' + c.parsed.toFixed(2);
+                    }}}
                 }
             }
         });
     }
 
-    const suscripcionesCtx = document.getElementById('suscripcionesChart');
-    if (suscripcionesCtx && window.suscripcionesData) {
-        new Chart(suscripcionesCtx, {
+    var ingDesde = document.getElementById('ingDesde');
+    if (ingDesde) {
+        ingDesde.addEventListener('change', drawIngresos);
+        document.getElementById('ingHasta').addEventListener('change', drawIngresos);
+        drawIngresos();
+    }
+
+    // ── 3. SUSCRIPCIONES POR PLAN ───────────────────────────
+    var sussEstadoEl = document.getElementById('sussEstado');
+    if (sussEstadoEl && D.suscripciones.length) {
+        var estadosSet = Array.from(new Set(D.suscripciones.map(function(s) {
+            return s.estado;
+        }).filter(Boolean))).sort();
+        ['Todas'].concat(estadosSet).forEach(function(e) {
+            var o = document.createElement('option');
+            o.value = e === 'Todas' ? '' : e;
+            o.textContent = e;
+            sussEstadoEl.appendChild(o);
+        });
+    }
+
+    function drawSuscripciones() {
+        var desde  = (document.getElementById('sussDesde') || {}).value || '';
+        var hasta  = (document.getElementById('sussHasta') || {}).value || '';
+        var estado = (document.getElementById('sussEstado') || {}).value || '';
+        var rows = dateFilter(D.suscripciones, 'fecha', desde, hasta);
+        if (estado) rows = rows.filter(function(s) { return s.estado === estado; });
+        var sorted = groupCount(rows, 'plan');
+        kill('suscripcionesChart');
+        if (!sorted.length) { toggle('suscripcionesChart', 'sussNoData', true); return; }
+        toggle('suscripcionesChart', 'sussNoData', false);
+        ci['suscripcionesChart'] = new Chart(document.getElementById('suscripcionesChart'), {
             type: 'doughnut',
             data: {
-                labels: window.suscripcionesData.labels,
-                datasets: [{
-                    data: window.suscripcionesData.values,
-                    backgroundColor: [
-                        '#7B2CBF','#e74c3c','#2ecc71',
-                        '#f0a500','#3498db','#9b59b6'
-                    ],
-                }]
+                labels: sorted.map(function(e) { return e[0]; }),
+                datasets: [{ data: sorted.map(function(e) { return e[1]; }),
+                    backgroundColor: CHART_COLORS.slice(0, sorted.length) }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: CHART_TEXT } }
-                }
+                plugins: { legend: { position: 'bottom', labels: { color: CHART_TEXT } } }
             }
         });
+    }
+
+    var sussDesde = document.getElementById('sussDesde');
+    if (sussDesde) {
+        sussDesde.addEventListener('change', drawSuscripciones);
+        document.getElementById('sussHasta').addEventListener('change', drawSuscripciones);
+        if (sussEstadoEl) sussEstadoEl.addEventListener('change', drawSuscripciones);
+        drawSuscripciones();
+    }
+
+    // ── 4. REGALÍAS POR ARTISTA ─────────────────────────────
+    var regPeriodoEl = document.getElementById('regPeriodo');
+    var regArtistaEl = document.getElementById('regArtista');
+
+    if (regPeriodoEl && D.regalias && D.regalias.length) {
+        var periodos = Array.from(new Set(D.regalias.map(function(r) {
+            return r.periodo;
+        }).filter(Boolean))).sort().reverse();
+        periodos.forEach(function(p) {
+            var o = document.createElement('option');
+            o.value = o.textContent = p;
+            regPeriodoEl.appendChild(o);
+        });
+
+        var artistas = Array.from(new Set(D.regalias.map(function(r) {
+            return r.artista;
+        }).filter(Boolean))).sort();
+        var todosOpt = document.createElement('option');
+        todosOpt.value = ''; todosOpt.textContent = 'Todos';
+        regArtistaEl.appendChild(todosOpt);
+        artistas.forEach(function(a) {
+            var o = document.createElement('option');
+            o.value = o.textContent = a;
+            regArtistaEl.appendChild(o);
+        });
+
+        function drawRegalias() {
+            var periodo = regPeriodoEl.value;
+            var artista = regArtistaEl.value;
+            var rows = D.regalias.filter(function(r) {
+                return (!periodo || r.periodo === periodo) &&
+                       (!artista || r.artista === artista);
+            });
+            var sorted = groupSum(rows, 'artista', 'repros');
+            var montos = sorted.map(function(e) { return Math.round(e[1] * 0.004 * 100) / 100; });
+            kill('regaliasChart');
+            if (!sorted.length) { toggle('regaliasChart', 'regNoData', true); return; }
+            toggle('regaliasChart', 'regNoData', false);
+            var opts = hBarOpts();
+            opts.scales.x.ticks.callback = function(v) { return '$' + v; };
+            ci['regaliasChart'] = new Chart(document.getElementById('regaliasChart'), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(function(e) { return e[0]; }),
+                    datasets: [{ label: 'Monto Est. ($)', data: montos,
+                        backgroundColor: CHART_COLORS[2], borderRadius: 6 }]
+                },
+                options: opts
+            });
+        }
+
+        regPeriodoEl.addEventListener('change', drawRegalias);
+        regArtistaEl.addEventListener('change', drawRegalias);
+        drawRegalias();
+    } else if (regPeriodoEl) {
+        toggle('regaliasChart', 'regNoData', true);
     }
 }
 

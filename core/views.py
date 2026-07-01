@@ -502,43 +502,62 @@ def reportes(request):
     if redir:
         return redir
 
-    if db is None:
-        context = {
-            'reproducciones_por_pais': [],
-            'top_canciones': [],
-            'ingresos_por_metodo': [],
-            'suscripciones_por_plan': [],
-        }
-        return render(request, 'reportes/reportes.html', context)
+    import json as _json
 
-    reproducciones_por_pais = [
-        {'paisReproduccion': item['_id'] or 'Desconocido', 'total': item['total']}
-        for item in db['reproduccion'].aggregate([
-            {'$group': {'_id': '$paisReproduccion', 'total': {'$sum': 1}}},
-            {'$sort': {'total': -1}},
-        ])
+    def _dt_str(v):
+        if v is None:
+            return ''
+        if hasattr(v, 'strftime'):
+            return v.strftime('%Y-%m-%dT%H:%M:%S')
+        return str(v)
+
+    empty = {'repros': [], 'pagos': [], 'suscripciones': [], 'regalias': []}
+
+    if db is None:
+        return render(request, 'reportes/reportes.html',
+                      {'reportes_json': _json.dumps(empty, ensure_ascii=False)})
+
+    repros_raw = [
+        {'pais': r.get('paisReproduccion') or 'Desconocido',
+         'fecha': _dt_str(r.get('fechaReproduccion', ''))}
+        for r in db['reproduccion'].find(
+            {}, {'paisReproduccion': 1, 'fechaReproduccion': 1, '_id': 0})
     ]
-    ingresos_por_metodo = [
-        {'metodoPago': item['_id'] or 'Sin método', 'total': round(item['total'], 2)}
-        for item in db['pago'].aggregate([
-            {'$group': {'_id': '$metodoPago', 'total': {'$sum': '$montoPago'}}},
-            {'$sort': {'total': -1}},
-        ])
+
+    pagos_raw = [
+        {'metodo': p.get('metodoPago') or 'Sin método',
+         'monto': float(p.get('montoPago') or 0),
+         'fecha': _dt_str(p.get('fechaPago', ''))}
+        for p in db['pago'].find(
+            {}, {'metodoPago': 1, 'montoPago': 1, 'fechaPago': 1, '_id': 0})
     ]
-    suscripciones_por_plan = [
-        {'tipoPlanSuscripcion': item['_id'] or 'Sin plan', 'total': item['total']}
-        for item in db['suscripcion'].aggregate([
-            {'$group': {'_id': '$tipoPlanSuscripcion', 'total': {'$sum': 1}}},
-            {'$sort': {'total': -1}},
-        ])
+
+    suscripciones_raw = [
+        {'plan': s.get('tipoPlanSuscripcion') or 'Sin plan',
+         'estado': s.get('estadoSuscripcion', ''),
+         'fecha': _dt_str(s.get('fechaInicioSuscripcion', ''))}
+        for s in db['suscripcion'].find(
+            {}, {'tipoPlanSuscripcion': 1, 'estadoSuscripcion': 1,
+                 'fechaInicioSuscripcion': 1, '_id': 0})
     ]
-    context = {
-        'reproducciones_por_pais': reproducciones_por_pais,
-        'top_canciones': _build_top_canciones(limit=10),
-        'ingresos_por_metodo': ingresos_por_metodo,
-        'suscripciones_por_plan': suscripciones_por_plan,
+
+    regalias_raw = [
+        {'artista': r.get('nombreArtista', ''),
+         'periodo': r.get('periodoRegalia', ''),
+         'repros': int(r.get('totalReproduccionesRegalia') or 0)}
+        for r in db['regalia'].find(
+            {}, {'nombreArtista': 1, 'periodoRegalia': 1,
+                 'totalReproduccionesRegalia': 1, '_id': 0})
+    ]
+
+    payload = {
+        'repros': repros_raw,
+        'pagos': pagos_raw,
+        'suscripciones': suscripciones_raw,
+        'regalias': regalias_raw,
     }
-    return render(request, 'reportes/reportes.html', context)
+    return render(request, 'reportes/reportes.html',
+                  {'reportes_json': _json.dumps(payload, ensure_ascii=False)})
 
 
 # ============================================================
