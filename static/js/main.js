@@ -226,6 +226,351 @@ function initNavbarToggle() {
 }
 
 // ============================================================
+// UTILIDADES COMPARTIDAS (playlists + canciones)
+// ============================================================
+
+// Convierte "HH:MM:SS" a "m:ss"
+function fmtDur(str) {
+    if (!str) return '—';
+    var p = str.trim().split(':');
+    if (p.length !== 3) return str;
+    var totalMin = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+    var s = parseInt(p[2], 10);
+    return totalMin + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// ============================================================
+// CANCIONES — MODAL DE DETALLE
+// ============================================================
+function onCancionClick(idStr) {
+    if (!window.CANCIONES_DATA) return;
+    var data = null;
+    for (var i = 0; i < window.CANCIONES_DATA.length; i++) {
+        if (window.CANCIONES_DATA[i].id === idStr) { data = window.CANCIONES_DATA[i]; break; }
+    }
+    if (data) openCkModal(data);
+}
+
+function openCkModal(data) {
+    var overlay = document.getElementById('ckModal');
+    if (!overlay) return;
+
+    document.getElementById('ckModalCover').style.background  = plColor(data.idInt);
+    document.getElementById('ckModalTitle').textContent       = data.tituloCancion;
+    document.getElementById('ckModalArtist').textContent      = data.albumArtista || '—';
+    document.getElementById('ckModalAlbum').textContent       = data.albumTitulo  || '—';
+    document.getElementById('ckModalPista').textContent       = data.numeroPistaCancion || '—';
+    document.getElementById('ckModalDur').textContent         = fmtDur(data.duracionCancion);
+
+    var generosEl = document.getElementById('ckModalGeneros');
+    generosEl.innerHTML = '';
+    if (data.generos && data.generos.length) {
+        data.generos.forEach(function(g) {
+            var span = document.createElement('span');
+            span.className   = 'badge badge-info';
+            span.textContent = g;
+            generosEl.appendChild(span);
+        });
+    } else {
+        generosEl.innerHTML = '<span style="color:var(--color-text-dim)">—</span>';
+    }
+
+    var estadoEl = document.getElementById('ckModalEstado');
+    estadoEl.textContent = data.estadoCancion;
+    estadoEl.className   = 'badge ' + (data.estadoCancion === 'Publicada' ? 'badge-success' : 'badge-danger');
+
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function initCkModal() {
+    var overlay = document.getElementById('ckModal');
+    if (!overlay) return;
+    var closeBtn = document.getElementById('ckModalClose');
+
+    function closeCkModal() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeCkModal);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeCkModal(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) closeCkModal();
+    });
+}
+
+// ============================================================
+// CANCIONES — TRACK LIST
+// ============================================================
+
+function initCancionesTrackList() {
+    var container = document.getElementById('tkRows');
+    if (!container) return;
+
+    var rows      = Array.from(container.querySelectorAll('.tk-row'));
+    var noResults = document.getElementById('tkNoResults');
+    var countEl   = document.getElementById('recordCount');
+    var searchEl  = document.getElementById('searchInput');
+
+    // Aplicar colores, formatear duración y fecha
+    rows.forEach(function(row) {
+        var idInt = parseInt(row.dataset.id, 10) || 0;
+        var cover = row.querySelector('.tk-cover');
+        if (cover) cover.style.background = plColor(idInt);
+
+        var durEl = row.querySelector('.tk-dur');
+        if (durEl) durEl.textContent = fmtDur(durEl.textContent);
+
+        var dateEl = row.querySelector('.tk-album-date');
+        if (dateEl && dateEl.textContent.trim()) {
+            dateEl.textContent = plFmtFecha(dateEl.textContent.trim());
+        }
+    });
+
+    // Stub click — data-id disponible para el modal futuro
+    rows.forEach(function(row) {
+        row.addEventListener('click', function()  { onCancionClick(row.dataset.id); });
+        row.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') onCancionClick(row.dataset.id);
+        });
+    });
+
+    // Búsqueda por título O artista
+    if (searchEl) {
+        searchEl.addEventListener('keyup', function() {
+            var filter  = this.value.toLowerCase().trim();
+            var visible = 0;
+            rows.forEach(function(row) {
+                var match = !filter ||
+                    row.dataset.titulo.toLowerCase().includes(filter) ||
+                    row.dataset.artista.toLowerCase().includes(filter);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            if (noResults) noResults.style.display = (visible === 0 && filter) ? '' : 'none';
+            if (countEl) {
+                countEl.textContent = filter
+                    ? visible + ' resultado' + (visible !== 1 ? 's' : '')
+                    : rows.length + ' registros';
+            }
+        });
+    }
+}
+
+// ============================================================
+// PLAYLISTS — GRID + MODAL DE DETALLE
+// ============================================================
+
+// Gradiente determinístico por _id entero — misma paleta para card y modal
+function plColor(idInt) {
+    const PALETA = [
+        ['#6d28d9','#4c1d95'],
+        ['#0f766e','#134e4a'],
+        ['#be185d','#831843'],
+        ['#c2410c','#7c2d12'],
+        ['#1d4ed8','#1e3a8a'],
+        ['#15803d','#14532d'],
+        ['#b45309','#78350f'],
+        ['#0e7490','#164e63'],
+    ];
+    const pair = PALETA[((idInt % 8) + 8) % 8];
+    return 'linear-gradient(135deg,' + pair[0] + ' 0%,' + pair[1] + ' 100%)';
+}
+
+function plFmtFecha(str) {
+    if (!str) return '—';
+    const m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : str;
+}
+
+function initPlaylistGrid() {
+    var grid = document.getElementById('plGrid');
+    if (!grid || !window.PLAYLISTS_DATA) return;
+
+    var overlay    = document.getElementById('plModal');
+    var closeBtn   = document.getElementById('plModalClose');
+    var noResults  = document.getElementById('plNoResults');
+    var countEl    = document.getElementById('recordCount');
+    var searchEl   = document.getElementById('searchInput');
+    var deleteForm = document.getElementById('plDeleteForm');
+    var toggleBtn  = document.getElementById('plModalToggle');
+    var delBtn     = document.getElementById('plModalDelete');
+
+    var cards      = Array.from(grid.querySelectorAll('.pl-card'));
+    var currentIdx = -1;
+
+    // ── CSRF ─────────────────────────────────────────────────
+    function getCsrf() {
+        var m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
+    // ── COLORES ───────────────────────────────────────────────
+    cards.forEach(function(card) {
+        var idx  = parseInt(card.dataset.idx, 10);
+        var data = window.PLAYLISTS_DATA[idx];
+        if (data) card.querySelector('.pl-cover').style.background = plColor(data.idInt);
+    });
+
+    // ── BADGE Y BOTÓN DE ESTADO ──────────────────────────────
+    function setStateBadge(estado) {
+        var badge = document.getElementById('plModalBadge');
+        if (!badge) return;
+        badge.textContent = estado;
+        badge.className = 'badge pl-modal-badge ' + (estado === 'Activa' ? 'badge-success' : 'badge-warning');
+    }
+
+    function setToggleBtn(estado) {
+        if (!toggleBtn) return;
+        if (estado === 'Activa') {
+            toggleBtn.innerHTML = '<i class="fas fa-ban"></i> Suspender playlist';
+            toggleBtn.className = 'btn btn-warning';
+        } else {
+            toggleBtn.innerHTML = '<i class="fas fa-circle-check"></i> Activar playlist';
+            toggleBtn.className = 'btn btn-primary';
+        }
+        toggleBtn.disabled = false;
+    }
+
+    // ── ABRIR MODAL ───────────────────────────────────────────
+    function openModal(card) {
+        currentIdx   = parseInt(card.dataset.idx, 10);
+        var data     = window.PLAYLISTS_DATA[currentIdx];
+        if (!data) return;
+
+        document.getElementById('plModalCover').style.background = plColor(data.idInt);
+        document.getElementById('plModalTitle').textContent      = data.nombrePlaylist;
+
+        var n = data.canciones.length;
+        document.getElementById('plModalSub').textContent =
+            'De ' + data.nombreUsuario + ' · ' + n + ' canción' + (n !== 1 ? 'es' : '');
+
+        setStateBadge(data.estadoPlaylist);
+        setToggleBtn(data.estadoPlaylist);
+
+        if (deleteForm) deleteForm.action = '/playlists/eliminar/' + data.id + '/';
+        if (delBtn)     delBtn.dataset.nombre = data.nombrePlaylist;
+
+        // Tracklist
+        var tbody = document.getElementById('plModalBody');
+        tbody.innerHTML = '';
+        if (n === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);padding:1.2rem">Sin canciones agregadas</td></tr>';
+        } else {
+            data.canciones.forEach(function(c, i) {
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td style="color:var(--color-text-dim);width:36px;text-align:right;padding-right:1rem">' + (i + 1) + '</td>' +
+                    '<td>' + (c.tituloCancion || '—') + '</td>' +
+                    '<td style="color:var(--color-text-dim)">' + plFmtFecha(c.fechaAgregada) + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // ── LISTENERS DE TARJETAS ─────────────────────────────────
+    cards.forEach(function(card) {
+        card.addEventListener('click',   function()  { openModal(card); });
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(card); }
+        });
+    });
+
+    // ── CERRAR ────────────────────────────────────────────────
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click',  function(e) { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) closeModal();
+    });
+
+    // ── ELIMINAR — texto de moderación personalizado ──────────
+    if (delBtn) {
+        delBtn.addEventListener('click', function() {
+            var data  = window.PLAYLISTS_DATA[currentIdx];
+            var msgEl = document.querySelector('#deleteModal .modal-box p');
+            if (msgEl && data) {
+                window._plOrigDeleteMsg = msgEl.innerHTML;
+                msgEl.innerHTML = 'Esta playlist pertenece a <strong>' + data.nombreUsuario +
+                    '</strong>. ¿Confirmas que quieres eliminarla?';
+            }
+            closeModal();
+        });
+    }
+
+    // Restaurar el texto genérico al cancelar la eliminación
+    var cancelBtn = document.getElementById('cancelDelete');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            if (window._plOrigDeleteMsg) {
+                var msgEl = document.querySelector('#deleteModal .modal-box p');
+                if (msgEl) msgEl.innerHTML = window._plOrigDeleteMsg;
+                window._plOrigDeleteMsg = null;
+            }
+        });
+    }
+
+    // ── CAMBIAR ESTADO (fetch sin recarga) ────────────────────
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            if (currentIdx < 0) return;
+            var data = window.PLAYLISTS_DATA[currentIdx];
+            toggleBtn.disabled  = true;
+            toggleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            fetch('/playlists/cambiar-estado/' + data.id + '/', {
+                method:  'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(resp) {
+                if (resp.estadoPlaylist) {
+                    window.PLAYLISTS_DATA[currentIdx].estadoPlaylist = resp.estadoPlaylist;
+                    setStateBadge(resp.estadoPlaylist);
+                    setToggleBtn(resp.estadoPlaylist);
+                    // Actualizar punto en la tarjeta del grid
+                    var card = grid.querySelector('.pl-card[data-idx="' + currentIdx + '"]');
+                    if (card) {
+                        var dot = card.querySelector('.pl-dot');
+                        if (dot) dot.classList.toggle('pl-dot--active', resp.estadoPlaylist === 'Activa');
+                    }
+                } else {
+                    setToggleBtn(data.estadoPlaylist);
+                }
+            })
+            .catch(function() { setToggleBtn(window.PLAYLISTS_DATA[currentIdx].estadoPlaylist); });
+        });
+    }
+
+    // ── BÚSQUEDA ──────────────────────────────────────────────
+    if (searchEl) {
+        searchEl.addEventListener('keyup', function() {
+            var filter  = this.value.toLowerCase().trim();
+            var visible = 0;
+            cards.forEach(function(card) {
+                var match = card.dataset.nombre.toLowerCase().includes(filter);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            if (noResults) noResults.style.display = (visible === 0 && filter) ? '' : 'none';
+            if (countEl) {
+                countEl.textContent = filter
+                    ? visible + ' resultado' + (visible !== 1 ? 's' : '')
+                    : cards.length + ' registros';
+            }
+        });
+    }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', function () {
@@ -234,4 +579,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initDashboardCharts();
     initReportesCharts();
     initNavbarToggle();
+    initPlaylistGrid();
+    initCancionesTrackList();
+    initCkModal();
 });

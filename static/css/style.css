@@ -532,6 +532,425 @@ body {
 .disc-meta  { color: var(--color-text-dim); font-size: 0.78rem; }
 
 /* ============================================================
+   CANCIÓN — MODAL DE DETALLE
+   ============================================================ */
+.ck-modal-overlay {
+    display:         none;
+    position:        fixed;
+    inset:           0;
+    background:      rgba(0,0,0,0.78);
+    z-index:         1100;
+    align-items:     center;
+    justify-content: center;
+    padding:         1rem;
+}
+.ck-modal-overlay.active { display: flex; }
+
+.ck-modal-box {
+    background:    var(--color-surface);
+    border:        1px solid var(--color-border);
+    border-radius: 16px;
+    width:         100%;
+    max-width:     400px;
+    position:      relative;
+    overflow:      hidden;
+}
+
+.ck-modal-close {
+    position:    absolute;
+    top:         12px;
+    right:       14px;
+    background:  none;
+    border:      none;
+    color:       var(--color-text-dim);
+    font-size:   1.4rem;
+    line-height: 1;
+    cursor:      pointer;
+    z-index:     2;
+    padding:     2px 6px;
+    border-radius: 6px;
+    transition:  color 0.15s, background 0.15s;
+}
+.ck-modal-close:hover { color: var(--color-text); background: var(--color-border); }
+
+.ck-modal-header {
+    display:     flex;
+    gap:         1rem;
+    padding:     1.25rem 1.25rem 1.1rem;
+    align-items: center;
+}
+
+.ck-modal-cover {
+    width:           68px;
+    height:          68px;
+    border-radius:   10px;
+    flex-shrink:     0;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+}
+.ck-modal-cover i { font-size: 1.6rem; color: rgba(255,255,255,0.85); }
+
+.ck-modal-heading { min-width: 0; }
+
+.ck-modal-title {
+    font-size:    1.05rem;
+    font-weight:  700;
+    color:        var(--color-text);
+    margin-bottom: 4px;
+    word-break:   break-word;
+}
+.ck-modal-artist {
+    font-size: 0.85rem;
+    color:     var(--color-text-dim);
+}
+
+.ck-modal-divider {
+    height:     1px;
+    background: var(--color-border);
+}
+
+.ck-modal-props {
+    padding: 0.25rem 1.25rem 1rem;
+}
+
+.ck-prop {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    gap:             1rem;
+    padding:         0.65rem 0;
+    border-bottom:   1px solid var(--color-border);
+}
+.ck-prop:last-child { border-bottom: none; }
+
+.ck-prop-label {
+    display:     flex;
+    align-items: center;
+    gap:         0.45rem;
+    font-size:   0.82rem;
+    color:       var(--color-text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.ck-prop-label i { width: 14px; text-align: center; font-size: 0.8rem; }
+
+.ck-prop-value {
+    font-size:   0.88rem;
+    font-weight: 600;
+    color:       var(--color-text);
+    text-align:  right;
+}
+
+.ck-genres {
+    display:         flex;
+    flex-wrap:       wrap;
+    gap:             4px;
+    justify-content: flex-end;
+}
+
+/* ============================================================
+   CANCIONES — TRACK LIST
+   ============================================================ */
+.tk-list {
+    background: var(--color-surface);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Columnas: # | cover | título+artista | álbum+fecha | duración */
+.tk-header,
+.tk-row {
+    display: grid;
+    grid-template-columns: 28px 40px 1fr 1fr 52px;
+    align-items: center;
+    gap: 0 1rem;
+    padding: 0 1.25rem;
+}
+
+.tk-header {
+    padding-top:    0.55rem;
+    padding-bottom: 0.55rem;
+    border-bottom:  1px solid var(--color-border);
+    font-size:      0.7rem;
+    font-weight:    600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color:          var(--color-text-dim);
+    user-select:    none;
+}
+.tk-header-num { text-align: right; }
+.tk-header-dur { text-align: right; }
+
+.tk-row {
+    padding-top:    0.55rem;
+    padding-bottom: 0.55rem;
+    cursor:         pointer;
+    transition:     background 0.14s;
+    border-radius:  0;
+}
+.tk-row:hover    { background: var(--color-surface-dark); }
+.tk-row:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+
+.tk-num {
+    font-size:   0.83rem;
+    color:       var(--color-text-dim);
+    text-align:  right;
+}
+
+.tk-cover {
+    width:          40px;
+    height:         40px;
+    border-radius:  6px;
+    display:        flex;
+    align-items:    center;
+    justify-content: center;
+    flex-shrink:    0;
+}
+.tk-cover i { font-size: 1rem; color: rgba(255,255,255,0.82); }
+
+/* Título + artista */
+.tk-main {
+    display:    flex;
+    flex-direction: column;
+    gap:        2px;
+    min-width:  0;
+}
+.tk-title {
+    font-size:   0.9rem;
+    font-weight: 600;
+    color:       var(--color-text);
+    white-space: nowrap;
+    overflow:    hidden;
+    text-overflow: ellipsis;
+    display:     flex;
+    align-items: center;
+    gap:         6px;
+}
+.tk-dot-status {
+    width:        6px;
+    height:       6px;
+    border-radius: 50%;
+    background:   var(--color-danger);
+    flex-shrink:  0;
+}
+.tk-artist {
+    font-size:   0.78rem;
+    color:       var(--color-text-dim);
+    white-space: nowrap;
+    overflow:    hidden;
+    text-overflow: ellipsis;
+}
+
+/* Álbum + fecha */
+.tk-album-col {
+    display:        flex;
+    flex-direction: column;
+    gap:            2px;
+    min-width:      0;
+}
+.tk-album-name {
+    font-size:   0.85rem;
+    color:       var(--color-text-muted);
+    white-space: nowrap;
+    overflow:    hidden;
+    text-overflow: ellipsis;
+}
+.tk-album-date {
+    font-size: 0.77rem;
+    color:     var(--color-text-dim);
+}
+
+/* Duración */
+.tk-dur {
+    font-size:            0.85rem;
+    color:                var(--color-text-dim);
+    text-align:           right;
+    font-variant-numeric: tabular-nums;
+}
+
+.tk-no-results {
+    text-align: center;
+    color:      var(--color-text-dim);
+    padding:    2rem 1rem;
+    display:    none;
+}
+
+@media (max-width: 640px) {
+    .tk-header,
+    .tk-row { grid-template-columns: 24px 36px 1fr 44px; }
+    .tk-header-album,
+    .tk-album-col { display: none; }
+}
+
+/* ============================================================
+   PLAYLISTS — GRID DE TARJETAS
+   ============================================================ */
+.pl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 1.25rem;
+}
+
+.pl-card {
+    background: var(--color-surface);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.18s, box-shadow 0.18s;
+}
+.pl-card:hover,
+.pl-card:focus-visible {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+}
+
+.pl-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pl-cover-icon {
+    font-size: 2.4rem;
+    color: rgba(255,255,255,0.82);
+    pointer-events: none;
+}
+.pl-dot {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+    border: 2px solid rgba(0,0,0,0.35);
+}
+.pl-dot--active { background: var(--color-success); }
+
+.pl-info {
+    padding: 0.6rem 0.75rem 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.pl-name {
+    font-size: 0.87rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pl-user {
+    font-size: 0.77rem;
+    color: var(--color-text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pl-no-results {
+    text-align: center;
+    color: var(--color-text-dim);
+    padding: 2.5rem 1rem;
+    display: none;
+}
+
+/* ── PLAYLIST DETAIL MODAL ─────────────────────────────── */
+.pl-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.78);
+    z-index: 1100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.pl-modal-overlay.active { display: flex; }
+
+.pl-modal-box {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.pl-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: var(--color-text-dim);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+}
+.pl-modal-close:hover { color: var(--color-text); background: var(--color-border); }
+
+.pl-modal-header {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.5rem 1.5rem 1.25rem;
+    align-items: flex-start;
+}
+.pl-modal-cover {
+    width: 112px;
+    height: 112px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pl-modal-cover .pl-cover-icon { font-size: 3rem; }
+
+.pl-modal-meta {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+}
+.pl-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 5px;
+    word-break: break-word;
+}
+.pl-modal-badge {
+    display: inline-block;
+    margin: 6px 0 8px;
+}
+.pl-modal-sub {
+    font-size: 0.87rem;
+    color: var(--color-text-dim);
+    margin-bottom: 1rem;
+}
+.pl-modal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.pl-modal-tracks { border-top: 1px solid var(--color-border); }
+
+@media (max-width: 600px) {
+    .pl-modal-header { flex-direction: column; align-items: center; text-align: center; }
+    .pl-modal-actions { justify-content: center; }
+    .pl-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
+
+/* ============================================================
    LOGIN PAGE
    Los estilos del login son auto-contenidos en templates/login.html
    mediante un bloque <style> inline para garantizar aislamiento

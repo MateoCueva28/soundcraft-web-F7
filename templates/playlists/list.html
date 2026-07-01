@@ -12,39 +12,84 @@
         <input type="text" id="searchInput" class="search-box" placeholder="Buscar playlist...">
     </div>
 </div>
-<div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Fecha Creación</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in playlists %}
-            <tr>
-                <td>{{ p.idPlaylist }}</td>
-                <td>{{ p.nombrePlaylist }}</td>
-                <td>{{ p.nombreUsuario }}</td>
-                <td>{{ p.fechaCreacionPlaylist|date:"d/m/Y" }}</td>
-                <td>
-                    {% if p.estadoPlaylist == 'Activa' %}
-                        <span class="badge badge-success">{{ p.estadoPlaylist }}</span>
-                    {% else %}
-                        <span class="badge badge-danger">{{ p.estadoPlaylist }}</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="empty-state">
-                <div class="empty-state-icon"><i class="fas fa-list"></i></div>
-                <p>No hay playlists registradas.</p>
-            </td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+{% if playlists %}
+<div class="pl-grid" id="plGrid">
+    {% for p in playlists %}
+    <div class="pl-card"
+         data-idx="{{ forloop.counter0 }}"
+         data-nombre="{{ p.nombrePlaylist }}"
+         tabindex="0"
+         role="button"
+         aria-label="Ver {{ p.nombrePlaylist }}">
+        <div class="pl-cover">
+            <i class="fas fa-music pl-cover-icon"></i>
+            <span class="pl-dot {% if p.estadoPlaylist == 'Activa' %}pl-dot--active{% endif %}"></span>
+        </div>
+        <div class="pl-info">
+            <span class="pl-name">{{ p.nombrePlaylist }}</span>
+            <span class="pl-user">De {{ p.nombreUsuario }}</span>
+        </div>
+    </div>
+    {% endfor %}
 </div>
+<p class="pl-no-results" id="plNoResults">No se encontraron playlists.</p>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-list"></i></div>
+    <p>No hay playlists registradas.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block modals %}
+<!-- ── MODAL DE DETALLE DE PLAYLIST ──────────────────────── -->
+<!-- Fuera de .container para evitar que el transform de fadeIn
+     rompa position:fixed (stacking context) -->
+<div class="pl-modal-overlay" id="plModal" role="dialog" aria-modal="true" aria-labelledby="plModalTitle">
+    <div class="pl-modal-box">
+        <button class="pl-modal-close" id="plModalClose" aria-label="Cerrar">&times;</button>
+
+        <div class="pl-modal-header">
+            <div class="pl-modal-cover" id="plModalCover">
+                <i class="fas fa-music pl-cover-icon"></i>
+            </div>
+            <div class="pl-modal-meta">
+                <h2 class="pl-modal-title" id="plModalTitle"></h2>
+                <span class="badge pl-modal-badge" id="plModalBadge"></span>
+                <p class="pl-modal-sub" id="plModalSub"></p>
+                <div class="pl-modal-actions">
+                    <button type="button" class="btn" id="plModalToggle"></button>
+                    <form id="plDeleteForm" method="post" action="" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-danger btn-delete-modal"
+                                id="plModalDelete"
+                                data-nombre="">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <table class="table pl-modal-tracks">
+            <thead>
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>Canción</th>
+                    <th>Fecha agregada</th>
+                </tr>
+            </thead>
+            <tbody id="plModalBody"></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.PLAYLISTS_DATA = {{ playlists_json|safe }};
+</script>
 {% endblock %}
