@@ -30,7 +30,14 @@
                 <td>{{ a.idArtista }}</td>
                 <td>{{ a.nombreArtisticoArtista }}</td>
                 <td>{{ a.paisOrigenArtista }}</td>
-                <td>{{ a.Discografia_idDiscografia.nombreDiscografia }}</td>
+                <td>
+                    {% if a.discografia %}
+                        <span class="disc-name">{{ a.discografia.nombreDiscografia }}</span>
+                        <br><small class="disc-meta">{{ a.discografia.paisDiscografia }} · {{ a.discografia.correoDiscografia }}</small>
+                    {% else %}
+                        <span style="color:var(--color-text-dim)">—</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if a.estadoArtista == 'Activo' %}
                         <span class="badge badge-success">{{ a.estadoArtista }}</span>

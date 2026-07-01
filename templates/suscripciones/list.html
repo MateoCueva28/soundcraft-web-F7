@@ -28,7 +28,7 @@
             {% for s in suscripciones %}
             <tr>
                 <td>{{ s.idSuscripcion }}</td>
-                <td>{{ s.Usuario_idUsuario.nombreUsuario }}</td>
+                <td>{{ s.nombreUsuario }}</td>
                 <td><span class="badge badge-info">{{ s.tipoPlanSuscripcion }}</span></td>
                 <td>{{ s.fechaInicioSuscripcion|date:"d/m/Y" }}</td>
                 <td>{{ s.fechaFinSuscripcion|date:"d/m/Y" }}</td>

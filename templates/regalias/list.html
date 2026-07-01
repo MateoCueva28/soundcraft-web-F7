@@ -29,7 +29,7 @@
             {% for r in regalias %}
             <tr>
                 <td>{{ r.idRegalia }}</td>
-                <td>{{ r.Artista_idArtista.nombreArtisticoArtista }}</td>
+                <td>{{ r.nombreArtista }}</td>
                 <td>{{ r.periodoRegalia }}</td>
                 <td>{{ r.totalReproduccionesRegalia }}</td>
                 <td>${{ r.totalReproduccionesRegalia|multiply:0.004|floatformat:2 }}</td>

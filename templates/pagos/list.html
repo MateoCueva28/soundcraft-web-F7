@@ -17,7 +17,7 @@
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Suscripción</th>
+                <th>Usuario / Plan</th>
                 <th>Monto</th>
                 <th>Método</th>
                 <th>Estado</th>
@@ -28,7 +28,7 @@
             {% for p in pagos %}
             <tr>
                 <td>{{ p.idPago }}</td>
-                <td>#{{ p.Suscripcion_idSuscripcion.idSuscripcion }} — {{ p.Suscripcion_idSuscripcion.tipoPlanSuscripcion }}</td>
+                <td>{{ p.nombreUsuario }}<br><small class="disc-meta">{{ p.tipoPlan }}</small></td>
                 <td>${{ p.montoPago }}</td>
                 <td>{{ p.metodoPago }}</td>
                 <td>

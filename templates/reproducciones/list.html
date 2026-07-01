@@ -28,8 +28,8 @@
             {% for r in reproducciones %}
             <tr>
                 <td>{{ r.idReproduccion }}</td>
-                <td>{{ r.Usuario_idUsuario.nombreUsuario }}</td>
-                <td>{{ r.Cancion_idCancion.tituloCancion }}</td>
+                <td>{{ r.nombreUsuario }}</td>
+                <td>{{ r.tituloCancion }}</td>
                 <td>{{ r.paisReproduccion }}</td>
                 <td>{{ r.duracionReproduccion }}</td>
                 <td>{{ r.fechaReproduccion|date:"d/m/Y H:i" }}</td>

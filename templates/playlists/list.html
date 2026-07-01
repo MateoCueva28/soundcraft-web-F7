@@ -28,7 +28,7 @@
             <tr>
                 <td>{{ p.idPlaylist }}</td>
                 <td>{{ p.nombrePlaylist }}</td>
-                <td>{{ p.Usuario_idUsuario.nombreUsuario }}</td>
+                <td>{{ p.nombreUsuario }}</td>
                 <td>{{ p.fechaCreacionPlaylist|date:"d/m/Y" }}</td>
                 <td>
                     {% if p.estadoPlaylist == 'Activa' %}

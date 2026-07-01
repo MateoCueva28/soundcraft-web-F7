@@ -20,6 +20,7 @@
                 <th>Título</th>
                 <th>Duración</th>
                 <th>Pista</th>
+                <th>Género</th>
                 <th>Álbum</th>
                 <th>Estado</th>
             </tr>
@@ -31,7 +32,23 @@
                 <td>{{ c.tituloCancion }}</td>
                 <td>{{ c.duracionCancion }}</td>
                 <td>{{ c.numeroPistaCancion }}</td>
-                <td>{{ c.Album_idAlbum.tituloAlbum }}</td>
+                <td>
+                    {% if c.generos %}
+                        {% for g in c.generos %}
+                            <span class="badge badge-info">{{ g.genero }}</span>{% if not forloop.last %} {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span style="color:var(--color-text-dim)">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if c.album %}
+                        <span class="disc-name">{{ c.album.tituloAlbum }}</span>
+                        <br><small class="disc-meta">{{ c.album.fechaLanzamiento|date:"d/m/Y" }} · {{ c.album.nombreArtista }}</small>
+                    {% else %}
+                        <span style="color:var(--color-text-dim)">—</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if c.estadoCancion == 'Publicada' %}
                         <span class="badge badge-success">{{ c.estadoCancion }}</span>
@@ -41,7 +58,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="empty-state">
+            <tr><td colspan="7" class="empty-state">
                 <div class="empty-state-icon"><i class="fas fa-music"></i></div>
                 <p>No hay canciones registradas.</p>
             </td></tr>
