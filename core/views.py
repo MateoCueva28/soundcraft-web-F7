@@ -349,28 +349,105 @@ def artista_list(request):
 # CANCIONES
 # ============================================================
 def cancion_list(request):
+    import json as _json
     redir = _require_session(request)
     if redir:
         return redir
     canciones = _load_documents('cancion', 'idCancion')
-    return render(request, 'canciones/list.html', {'canciones': canciones})
+
+    canciones_js = []
+    for c in canciones:
+        album = c.get('album') or {}
+        canciones_js.append({
+            'id':                 c.get('id_str', ''),
+            'idInt':              c['_id'] if isinstance(c.get('_id'), int) else 0,
+            'tituloCancion':      c.get('tituloCancion', ''),
+            'duracionCancion':    c.get('duracionCancion', ''),
+            'numeroPistaCancion': c.get('numeroPistaCancion', ''),
+            'estadoCancion':      c.get('estadoCancion', ''),
+            'generos':            [g.get('genero', '') for g in (c.get('generos') or [])],
+            'albumTitulo':        album.get('tituloAlbum', ''),
+            'albumArtista':       album.get('nombreArtista', ''),
+        })
+
+    return render(request, 'canciones/list.html', {
+        'canciones':      canciones,
+        'canciones_json': _json.dumps(canciones_js, ensure_ascii=False),
+    })
 
 
 # ============================================================
 # PLAYLISTS
 # ============================================================
 def playlist_list(request):
+    import json as _json
     redir = _require_session(request)
     if redir:
         return redir
     playlists = _load_documents('playlists', 'idPlaylist')
-    # Enriquecer con nombreUsuario buscando los usuarios únicos en una sola consulta
     if db is not None and playlists:
         ids = list({p.get('usuarioId') for p in playlists if p.get('usuarioId') is not None})
         usuarios = {u['_id']: u.get('nombreUsuario', '') for u in db['usuario'].find({'_id': {'$in': ids}}, {'nombreUsuario': 1})}
         for p in playlists:
             p['nombreUsuario'] = usuarios.get(p.get('usuarioId'), '—')
-    return render(request, 'playlists/list.html', {'playlists': playlists})
+
+    # Serializar para window.PLAYLISTS_DATA (modal de detalle + colores)
+    playlists_js = []
+    for p in playlists:
+        playlists_js.append({
+            'id':             p.get('id_str', ''),
+            'idInt':          p['_id'] if isinstance(p.get('_id'), int) else 0,
+            'nombrePlaylist': p.get('nombrePlaylist', ''),
+            'estadoPlaylist': p.get('estadoPlaylist', ''),
+            'nombreUsuario':  p.get('nombreUsuario', '—'),
+            'canciones': [
+                {
+                    'tituloCancion': c.get('tituloCancion', ''),
+                    'fechaAgregada': c.get('fechaAgregada', '') if isinstance(c.get('fechaAgregada'), str) else '',
+                }
+                for c in (p.get('canciones') or [])
+            ],
+        })
+
+    return render(request, 'playlists/list.html', {
+        'playlists':      playlists,
+        'playlists_json': _json.dumps(playlists_js, ensure_ascii=False),
+    })
+
+
+def playlist_eliminar(request, pk):
+    redir = _require_session(request)
+    if redir:
+        return redir
+    playlist = _find_by_id('playlists', pk, 'idPlaylist')
+    if not playlist:
+        messages.error(request, 'Playlist no encontrada.')
+        return redirect('playlist_list')
+    if request.method == 'POST':
+        try:
+            db['playlists'].delete_one({'_id': playlist['_id']})
+            messages.success(request, 'Playlist eliminada exitosamente.')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar: {e}')
+    return redirect('playlist_list')
+
+
+def playlist_cambiar_estado(request, pk):
+    if not request.session.get('usuario_id'):
+        return JsonResponse({'error': 'No autenticado'}, status=401)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    if db is None:
+        return JsonResponse({'error': 'Sin conexión a base de datos'}, status=503)
+    playlist = _find_by_id('playlists', pk, 'idPlaylist')
+    if not playlist:
+        return JsonResponse({'error': 'Playlist no encontrada'}, status=404)
+    nuevo_estado = 'Suspendida' if playlist.get('estadoPlaylist') == 'Activa' else 'Activa'
+    try:
+        db['playlists'].update_one({'_id': playlist['_id']}, {'$set': {'estadoPlaylist': nuevo_estado}})
+        return JsonResponse({'estadoPlaylist': nuevo_estado})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 # ============================================================

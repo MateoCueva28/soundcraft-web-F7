@@ -26,6 +26,8 @@ urlpatterns = [
 
     # Playlists
     path('playlists/', views.playlist_list, name='playlist_list'),
+    path('playlists/eliminar/<str:pk>/', views.playlist_eliminar, name='playlist_eliminar'),
+    path('playlists/cambiar-estado/<str:pk>/', views.playlist_cambiar_estado, name='playlist_cambiar_estado'),
 
     # Reproducciones
     path('reproducciones/', views.reproduccion_list, name='reproduccion_list'),
