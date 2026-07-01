@@ -20,13 +20,15 @@
             <li><a href="{% url 'usuario_list' %}" class="{% if 'usuario' in url_name %}active{% endif %}">Usuarios</a></li>
             <li><a href="{% url 'artista_list' %}" class="{% if 'artista' in url_name %}active{% endif %}">Artistas</a></li>
             <li><a href="{% url 'cancion_list' %}" class="{% if 'cancion' in url_name %}active{% endif %}">Canciones</a></li>
-            <li><a href="{% url 'album_list' %}" class="{% if 'album' in url_name %}active{% endif %}">Álbumes</a></li>
-            <li><a href="{% url 'playlist_list' %}" class="{% if 'playlist' in url_name %}active{% endif %}">Playlists</a></li>
+<li><a href="{% url 'playlist_list' %}" class="{% if 'playlist' in url_name %}active{% endif %}">Playlists</a></li>
             <li><a href="{% url 'reproduccion_list' %}" class="{% if 'reproduccion' in url_name %}active{% endif %}">Reproducciones</a></li>
             <li><a href="{% url 'suscripcion_list' %}" class="{% if 'suscripcion' in url_name %}active{% endif %}">Suscripciones</a></li>
             <li><a href="{% url 'pago_list' %}" class="{% if 'pago' in url_name %}active{% endif %}">Pagos</a></li>
             <li><a href="{% url 'regalia_list' %}" class="{% if 'regalia' in url_name %}active{% endif %}">Regalías</a></li>
             <li><a href="{% url 'reportes' %}" class="{% if url_name == 'reportes' %}active{% endif %}">Reportes</a></li>
+            {% if request.session.usuario_id %}
+            <li><a href="{% url 'logout_view' %}" class="nav-logout"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</a></li>
+            {% endif %}
         </ul>
     </nav>
     {% endwith %}
